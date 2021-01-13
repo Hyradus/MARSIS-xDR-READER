@@ -1,6 +1,7 @@
 **SCRIPT for read MARSIS EDR, RDR and RAW files and export Images, Numpy Dumps and geopackages/shapefiles**
 
 *@author: Giacomo Nodjoumi - g.nodjoumi@jacobs-university.de*
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4436199.svg)](https://doi.org/10.5281/zenodo.4436199)
 
 **README**
 ________________________________________________________________________________
