@@ -1,22 +1,33 @@
-# SCRIPT for read MARSIS EDR, RDR and RAW files and export Images, Numpy Dumps and geopackages/shapefiles
-### @author: Giacomo Nodjoumi - g.nodjoumi@jacobs-university.de
+**SCRIPT for read MARSIS EDR, RDR and RAW files and export Images, Numpy Dumps and geopackages/shapefiles**
 
-# README
+*@author: Giacomo Nodjoumi - g.nodjoumi@jacobs-university.de*
+
+**README**
 ________________________________________________________________________________
-# Table of Contents
+##### Table of Contents
 
-* [Pipeline/workflow description](#Pipeline/workflow descriptione)
-* [CONDA Environment](#CONDA Environment)
-    * [Install Anaconda](##Install anaconda)
-    * [Create the environment using the yml](## Create the environment using the yml)
-    * [Activate MARSISv2 environment](## Activate MARSISv2 environment)
-* [Script execution](# Script execution)
-    * [Arguments to be passed](## Arguments to be passed)
-* [Examples](# Examples)
-    * [Conda environment installation and script execution](## Conda environment installation and script execution)
-    * [General Example](## General example)
-    * [Test example](## Test example)
-
+- [Pipeline/workflow description](#pipeline-workflow-description)
+- [Differences between CLI script and notebook](#differences-between-cli-script-and-notebook)
+- [CONDA environment](#conda-environment)
+  * [Install anaconda](#install-anaconda)
+  * [Create and activate the environment using the yml](#create-and-activate-the-environment-using-the-yml)
+- [Script execution](#script-execution)
+  * [Arguments that can be passed [ONLY CLI SCRIPT]](#arguments-that-can-be-passed--only-cli-script-)
+    + [Output directory](#output-directory)
+    + [Data directory](#data-directory)
+    + [Driver for saving GIS files](#driver-for-saving-gis-files)
+    + [Data record type](#data-record-type)
+    + [Save images flag](#save-images-flag)
+    + [Save numpy dumps](#save-numpy-dumps)
+    + [Save SEG-y files](#save-seg-y-files)
+  * [General example](#general-example)
+    + [CLI script](#cli-script)
+    + [Notebook](#notebook)
+  * [Outputs:](#outputs-)
+    + [GIS OUTPUTS](#gis-outputs)
+    + [Image outputs](#image-outputs)
+    + [SEG-Y outpust](#seg-y-outpust)
+  * [Test example](#test-example)
 ________________________________________________________________________________
 # Pipeline/workflow description
 
