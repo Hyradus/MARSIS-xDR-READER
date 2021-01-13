@@ -77,6 +77,9 @@ It will ask every arguments.
 ### Save numpy dumps
 `--sdum` insert choice between Y,y,N,n
 
+### Save SEG-y files
+`--segy` insert choice between Y,y,N,n
+
 ## General example
 
 ### CLI script
