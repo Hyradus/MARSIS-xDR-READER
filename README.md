@@ -128,10 +128,10 @@ L’inconveniente è che bisogna ricordarsi che ora il dt visualizzato è di 3 o
 Credo che ora siano utilizzabili per ulteriori lavori ma comunque continuerò a cercare un’altra soluzione.
 
 Example of seg-y imported into opendTect
-![alt text](Readme_images/segy_opendtect.jpg?raw=true "seg-y opendTect")
+![alt text](Readme_images/segy_rdr.jpg?raw=true "seg-y RDR opendTect")
 
 And 2d track, showing dt in a major scale
-![alt text](Readme_images/segy_opendtect_2d_image.jpg?raw=true "seg-y opendTect")
+![alt text](Readme_images/segy_opendtect_2d_image.jpg?raw=true "seg-y RAW opendTect")
 ## Test example
 
 Here the example code shown in the image
