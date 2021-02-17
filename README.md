@@ -3,8 +3,6 @@
 
 # README
 ________________________________________________________________________________
-# Table of Contents
-
 - [Pipeline/workflow description](#pipeline-workflow-description)
 - [Differences between CLI script and notebook](#differences-between-cli-script-and-notebook)
 - [CONDA environment](#conda-environment)
@@ -25,7 +23,6 @@ ________________________________________________________________________________
   * [Outputs:](#outputs-)
     + [GIS OUTPUTS](#gis-outputs)
     + [Image outputs](#image-outputs)
-    + [SEG-Y outputs](#seg-y-outputs)
     + [Ingestion into postgres+postgis database](#ingestion-into-postgres-postgis-database)
     + [SEG-Y outpust](#seg-y-outpust)
   * [Test example](#test-example)
@@ -124,9 +121,9 @@ It creates three different geopackages:
     
 ### Image outputs
 As default it creates thre types of images for each frequency:
-* Original image
-* Normalized image
-* Scaled image using sklearn MinMaxScaler
+- Original image
+- Normalized image
+- Scaled image using sklearn MinMaxScaler
 
 *Further image processing is in development*
 
