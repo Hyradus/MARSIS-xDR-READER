@@ -61,8 +61,8 @@ with terminal move to the downloaded folder and run:
 ## Create and activate the environment using the yml
 
 Using the terminal, craate conda env using provided MARSISv2.yml:
-* `conda env create -f MARSISv2.yml`
-* `conda activate MARSISv2`
+* `conda env create -f MARSIS_Env.yml`
+* `conda activate MARSIS_Env`
 
 # Script execution
 
