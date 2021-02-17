@@ -130,10 +130,6 @@ As default it creates thre types of images for each frequency:
 
 *Further image processing is in development*
 
-
-### SEG-Y outputs
-It export a seg-y file for each frequency of each image
-
 ### Ingestion into postgres+postgis database
 Connection to database and ingestion parameters must be set into utils/DB_utils.py
 **Provided configuration is just an example**
