@@ -1,34 +1,22 @@
-**SCRIPT for read MARSIS EDR, RDR and RAW files and export Images, Numpy Dumps and geopackages/shapefiles**
+# SCRIPT for read MARSIS EDR, RDR and RAW files and export Images, Numpy Dumps and geopackages/shapefiles
+### @author: Giacomo Nodjoumi - g.nodjoumi@jacobs-university.de
 
-*@author: Giacomo Nodjoumi - g.nodjoumi@jacobs-university.de*
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4436199.svg)](https://doi.org/10.5281/zenodo.4436199)
-
-**README**
+# README
 ________________________________________________________________________________
-##### Table of Contents
+# Table of Contents
 
-- [Pipeline/workflow description](#pipeline-workflow-description)
-- [Differences between CLI script and notebook](#differences-between-cli-script-and-notebook)
-- [CONDA environment](#conda-environment)
-  * [Install anaconda](#install-anaconda)
-  * [Create and activate the environment using the yml](#create-and-activate-the-environment-using-the-yml)
-- [Script execution](#script-execution)
-  * [Arguments that can be passed [ONLY CLI SCRIPT]](#arguments-that-can-be-passed--only-cli-script-)
-    + [Output directory](#output-directory)
-    + [Data directory](#data-directory)
-    + [Driver for saving GIS files](#driver-for-saving-gis-files)
-    + [Data record type](#data-record-type)
-    + [Save images flag](#save-images-flag)
-    + [Save numpy dumps](#save-numpy-dumps)
-    + [Save SEG-y files](#save-seg-y-files)
-  * [General example](#general-example)
-    + [CLI script](#cli-script)
-    + [Notebook](#notebook)
-  * [Outputs:](#outputs-)
-    + [GIS OUTPUTS](#gis-outputs)
-    + [Image outputs](#image-outputs)
-    + [SEG-Y outpust](#seg-y-outpust)
-  * [Test example](#test-example)
+* [Pipeline/workflow description](#Pipeline/workflow descriptione)
+* [CONDA Environment](#CONDA Environment)
+    * [Install Anaconda](##Install anaconda)
+    * [Create the environment using the yml](## Create the environment using the yml)
+    * [Activate MARSISv2 environment](## Activate MARSISv2 environment)
+* [Script execution](# Script execution)
+    * [Arguments to be passed](## Arguments to be passed)
+* [Examples](# Examples)
+    * [Conda environment installation and script execution](## Conda environment installation and script execution)
+    * [General Example](## General example)
+    * [Test example](## Test example)
+
 ________________________________________________________________________________
 # Pipeline/workflow description
 
@@ -89,19 +77,28 @@ It will ask every arguments.
 ### Save numpy dumps
 `--sdum` insert choice between Y,y,N,n
 
-### Save SEG-y files
-`--segy` insert choice between Y,y,N,n
+### Save SEG-Y
+`--sgy` insert choice between Y,y,N,n
+
+### Update Database
+`--dbup` insert choice between Y,y,N,n
 
 ## General example
 
 ### CLI script
 Just run `python xDR-RAW-Reader.py 
 
-### Notebook
-* activate MARSISv2 environment
-* execute `jupyter labextension install @jupyter-widgets/jupyterlab-manager` ONLY the first time before jupyter lab execution
-* execute `jupyter lab`
-* open xDR-RAW-Reader.ipynb and execute 
+If NO argument is passed, the scripts ask interactively:
+    
+* Output Directory: path where all files are saved
+* Data directory: path where are all files to be processed
+* Driver for gis output: insert choice between GPKG, gpkg, SHP, shp
+* Data record type: insert choice between EDR, edr, RDR, rdr, RAW, raw
+* Flag for save images of both frequencies: insert choice between Y,y,N,n
+* Flag for save numpy dump of both frequencies: insert choice between Y,y,N,n
+* Flag for save seg-y of both frequencies: insert choice between Y,y,N,n
+* Flag for ingest data into database Y,y,N,n
+* Flag for select destination CRS
 
 ## Outputs:
 ### GIS OUTPUTS
@@ -109,30 +106,31 @@ It creates three different geopackages:
     - FULL with all orbits
     - North Pole with orbits from 65°->90° Latitude
     - South Pole with orbits from -65°->-90° Latitude
+    
 ### Image outputs
 As default it creates thre types of images for each frequency:
 * Original image
 * Normalized image
 * Scaled image using sklearn MinMaxScaler
 
+*Further image processing is in development*
+
+
+### SEG-Y outputs
+It export a seg-y file for each frequency of each image
+
+### Ingestion into postgres+postgis database
+Connection to database and ingestion parameters must be set into utils/DB_utils.py
+**Provided configuration is just an example**
+
 ### SEG-Y outpust
 It export a seg-y file for both frequency
-There is a problem related to:
--	too small dt 
--	too big coordinates (UTM) or to small (latlon) that even maximizing z-scale, the result was a flat line
--	OpendTect integer approximation. latlon original coordinates are approximated to integer, loosing decimals and resulting in segmented line.
-
-Solution:
-dt set to 7.14285714285714e-03, scaling factor = 1 and coordinates UTM for seg-y and longlat for gpkg. 
-In questo modo i seg-y vengono letti e visualizzati correttamente. Vedi immagine allegata.
-L’inconveniente è che bisogna ricordarsi che ora il dt visualizzato è di 3 ordini di grandezza maggiore. Vedi immagine allegata.
-Credo che ora siano utilizzabili per ulteriori lavori ma comunque continuerò a cercare un’altra soluzione.
 
 Example of seg-y imported into opendTect
-![alt text](Readme_images/segy_rdr.jpg?raw=true "seg-y RDR opendTect")
+![alt text](Readme_images/segy_opendtect.jpg?raw=true "seg-y opendTect")
 
 And 2d track, showing dt in a major scale
-![alt text](Readme_images/segy_opendtect_2d_image.jpg?raw=true "seg-y RAW opendTect")
+![alt text](Readme_images/segy_opendtect_2d_image.jpg?raw=true "seg-y opendTect")
 ## Test example
 
 Here the example code shown in the image

@@ -41,14 +41,31 @@ It will ask every arguments.
 ### Save numpy dumps
 `--sdum` insert choice between Y,y,N,n
 
+### Save SEG-Y
+`--sgy` insert choice between Y,y,N,n
+
+### Update Database
+`--dbup` insert choice between Y,y,N,n
+
 ## General example
 
 ### CLI script
 Just run `python xDR-RAW-Reader.py 
 
+If NO argument is passed, the scripts ask interactively:
+    
+* Output Directory: path where all files are saved
+* Data directory: path where are all files to be processed
+* Driver for gis output: insert choice between GPKG, gpkg, SHP, shp
+* Data record type: insert choice between EDR, edr, RDR, rdr, RAW, raw
+* Flag for save images of both frequencies: insert choice between Y,y,N,n
+* Flag for save numpy dump of both frequencies: insert choice between Y,y,N,n
+* Flag for save seg-y of both frequencies: insert choice between Y,y,N,n
+* Flag for ingest data into database Y,y,N,n
+* Flag for select destination CRS
+
 ## Outputs:
 ### GIS OUTPUTS
-
 It creates three different geopackages:
     - FULL with all orbits
     - North Pole with orbits from 65°->90° Latitude
@@ -60,6 +77,16 @@ As default it creates thre types of images for each frequency:
 * Normalized image
 * Scaled image using sklearn MinMaxScaler
 
+*Further image processing is in development*
+
+
+### SEG-Y outputs
+It export a seg-y file for each frequency of each image
+
+### Ingestion into postgres+postgis database
+Connection to database and ingestion parameters must be set into utils/DB_utils.py
+**Provided configuration is just an example**
+
 Created on Tue Jul 21 09:22:35 2020
 @author: @author: Giacomo Nodjoumi g.nodjoumi@jacobs-unversity.de
 """
@@ -70,7 +97,7 @@ import os
 import pathlib
 import geopandas as gpd
 import pandas as pd
-from tqdm.auto import tqdm
+
 from statistics import mean
 from shapely.geometry import LineString
 from pyproj.crs import CRS
@@ -78,23 +105,33 @@ import itertools
 import cv2 as cv
 from numpy import frombuffer as fbuff
 ##### Import Utils
-from utils.GenUtils import get_paths, make_folder, question
+from utils.GenUtils import get_paths, make_folder, question, folder_file_size
 from utils.ReprojUtils import coordTransformer
 from utils.DFUtils import DF_drop, geoDF2file, gdf_split, xDR_DF
 from utils.SegyUtils import assemply_segy, save_segy
 from utils.DBUtils import databaseUpdate
+from utils.DFUtils import xDR_params
+from utils.DFUtils import RAW_params
+from utils.DFUtils import FM_params
 ############################## GLOBAL VARIABLES #########################
-N_pole_crs = CRS.from_proj4('+proj=stere +lat_0=90 +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=3396190 +b=3376200 +units=m +no_defs ')
-S_pole_crs = CRS.from_proj4('+proj=stere +lat_0=-90 +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=3396190 +b=3376200 +units=m +no_defs ')
-marsORTHO = CRS.from_user_input('+proj=ortho +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +a=3396190 +b=3376200 +units=m +no_defs')
-mars_sphere = CRS.from_proj4('+proj=longlat +R=3396190 +no_defs +type=crs')
-marsPLNTC = CRS.from_proj4('+proj=longlat +a=3396190 +b=3376200 +no_defs')
-marsPLANCE = CRS.from_user_input('GEOGCS["Mars 2000 planetocentric",DATUM["D_Mars_2000",SPHEROID["Mars_2000_IAU_IAG",3396190.0,169.89444722361179]],PRIMEM["AIRY-0",180],UNIT["Degree",0.017453292519943295]]')
-marsEQUI= CRS.from_user_input('PROJCS["Mars_Equidistant_Cylindrical",GEOGCS["Mars 2000",DATUM["D_Mars_2000",SPHEROID["Mars_2000_IAU_IAG",3396190.0,169.89444722361179]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Equidistant_Cylindrical"],PARAMETER["False_Easting",0],PARAMETER["False_Northing",0],PARAMETER["Central_Meridian",0],PARAMETER["Standard_Parallel_1",0],UNIT["Meter",1]]')
-marsEQUI180 = CRS.from_user_input('PROJCS["Mars_Equidistant_Cylindrical",GEOGCS["Mars 2000",DATUM["D_Mars_2000",SPHEROID["Mars_2000_IAU_IAG",3396190.0,169.89444722361179]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Equidistant_Cylindrical"],PARAMETER["False_Easting",0],PARAMETER["False_Northing",0],PARAMETER["Central_Meridian",180],PARAMETER["Standard_Parallel_1",0],UNIT["Meter",1]]')
-marsUTM = CRS.from_proj4('+proj=tmerc +lat_0=0 +lon_0=0 +k=0.9996 +x_0=0 +y_0=0 +a=3396190 +b=3376200 +units=m +no_defs')
-marsMRCA = CRS.from_user_input('PROJCS["Mars_Mercator_AUTO",GEOGCS["Mars 2000",DATUM["D_Mars_2000",SPHEROID["Mars_2000_IAU_IAG",3396190.0,169.89444722361179]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Mercator"],PARAMETER["False_Easting",0],PARAMETER["False_Northing",0],PARAMETER["Central_Meridian",0],PARAMETER["Standard_Parallel_1",0],UNIT["Meter",1]]')
-mars2000=CRS.from_wkt('GEOGCS["Mars 2000",DATUM["D_Mars_2000",SPHEROID["Mars_2000_IAU_IAG",3396190.0,169.89444722361179]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]]')
+# N_pole_crs = CRS.from_proj4('+proj=stere +lat_0=90 +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=3396190 +b=3376200 +units=m +no_defs ')
+# S_pole_crs = CRS.from_proj4('+proj=stere +lat_0=-90 +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=3396190 +b=3376200 +units=m +no_defs ')
+# marsORTHO = CRS.from_user_input('+proj=ortho +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +a=3396190 +b=3376200 +units=m +no_defs')
+# mars_sphere = CRS.from_proj4('+proj=longlat +R=3396190 +no_defs +type=crs')
+# marsPLNTC = CRS.from_proj4('+proj=longlat +a=3396190 +b=3376200 +no_defs')
+# marsPLANCE = CRS.from_user_input('GEOGCS["Mars 2000 planetocentric",DATUM["D_Mars_2000",SPHEROID["Mars_2000_IAU_IAG",3396190.0,169.89444722361179]],PRIMEM["AIRY-0",180],UNIT["Degree",0.017453292519943295]]')
+# marsEQUI= CRS.from_user_input('PROJCS["Mars_Equidistant_Cylindrical",GEOGCS["Mars 2000",DATUM["D_Mars_2000",SPHEROID["Mars_2000_IAU_IAG",3396190.0,169.89444722361179]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Equidistant_Cylindrical"],PARAMETER["False_Easting",0],PARAMETER["False_Northing",0],PARAMETER["Central_Meridian",0],PARAMETER["Standard_Parallel_1",0],UNIT["Meter",1]]')
+# marsEQUI180 = CRS.from_user_input('PROJCS["Mars_Equidistant_Cylindrical",GEOGCS["Mars 2000",DATUM["D_Mars_2000",SPHEROID["Mars_2000_IAU_IAG",3396190.0,169.89444722361179]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Equidistant_Cylindrical"],PARAMETER["False_Easting",0],PARAMETER["False_Northing",0],PARAMETER["Central_Meridian",180],PARAMETER["Standard_Parallel_1",0],UNIT["Meter",1]]')
+# marsUTM = CRS.from_proj4('+proj=tmerc +lat_0=0 +lon_0=0 +k=0.9996 +x_0=0 +y_0=0 +a=3396190 +b=3376200 +units=m +no_defs')
+# marsMRCA = CRS.from_user_input('PROJCS["Mars_Mercator_AUTO",GEOGCS["Mars 2000",DATUM["D_Mars_2000",SPHEROID["Mars_2000_IAU_IAG",3396190.0,169.89444722361179]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Mercator"],PARAMETER["False_Easting",0],PARAMETER["False_Northing",0],PARAMETER["Central_Meridian",0],PARAMETER["Standard_Parallel_1",0],UNIT["Meter",1]]')
+# mars2000=CRS.from_wkt('GEOGCS["Mars 2000",DATUM["D_Mars_2000",SPHEROID["Mars_2000_IAU_IAG",3396190.0,169.89444722361179]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]]')
+
+Available_CRS = {'N_pole':CRS.from_proj4('+proj=stere +lat_0=90 +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=3396190 +b=3376200 +units=m +no_defs '),
+                 'S_pole':CRS.from_proj4('+proj=stere +lat_0=-90 +lon_0=0 +k=1 +x_0=0 +y_0=0 +a=3396190 +b=3376200 +units=m +no_defs '),
+                 'Planetocentric':CRS.from_proj4('+proj=longlat +a=3396190 +b=3376200 +no_defs'),
+                 'EquidistantCylindrical-180':CRS.from_user_input('PROJCS["Mars_Equidistant_Cylindrical",GEOGCS["Mars 2000",DATUM["D_Mars_2000",SPHEROID["Mars_2000_IAU_IAG",3396190.0,169.89444722361179]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Equidistant_Cylindrical"],PARAMETER["False_Easting",0],PARAMETER["False_Northing",0],PARAMETER["Central_Meridian",180],PARAMETER["Standard_Parallel_1",0],UNIT["Meter",1]]')
+                 
+    }
 #########################################################################
 
 
@@ -215,75 +252,85 @@ def RAW2GeoDF(xDR_df, xDR_gdf, xDrFile, ParamDF, def_crs):
         full_parameters.append(values)
         short_parameters.append(mean_values)
         file_name=fname.split('.')[0]
-        if ParamDF['NAME'][i] in ['SUB_SC_LONGITUDE','SUB_SC_LATITUDE']:
-            min_val = min(values)
-            max_val = max(values)
-            short_parameters.append(min_val)
-            short_parameters.append(max_val)
-            #print(min_val, ' ', max_val)
+
 
     if DRTYPE in ['RDR', 'rdr','EDR','edr']:
         a, b,c,d = [11,17,29,30]
         F= [full_parameters[a], full_parameters[b]]
         coord = list(zip(full_parameters[c], full_parameters[d]))
-        lat_mean = mean(full_parameters[d])
-        dt_value = 7.14285714285714e-03
-        scl = -10
+        # lat_mean = mean(full_parameters[d])
         
-        if lat_mean <=-65:
-            segy_crs = S_pole_crs
-        elif lat_mean >=65:
-            segy_crs = N_pole_crs
-        else:
-            segy_crs = marsEQUI180
-            
     elif DRTYPE in ['RAW','raw']:
         a, b,c,d = [9,11,21,22]
         F= [full_parameters[a], full_parameters[b]]
         coord = list(zip(full_parameters[c], full_parameters[d]))
-        lat_mean = mean(full_parameters[d])
-        scl = -1
-        dt_value = 7.14285714285714e-03
+        # lat_mean = mean(full_parameters[d])
         
-        if lat_mean <=-65:
-            segy_crs = S_pole_crs
-        elif lat_mean >=65:
-            segy_crs = N_pole_crs
-        else:
-            segy_crs = marsEQUI180
 
-    segy_coord = coordTransformer(coord, def_crs, segy_crs)            
-    DAT2FILE(IMG_DIR, DUMP_DIR, SEGY_DIR, file_name, F, SAVEDUMP, SAVEIMG, SAVESEGY,
-             segy_coord, dt=dt_value ,pp='y',scaler=scl)
+    if SAVESEGY in ['Y','y']:
+        if DRTYPE in ['RDR', 'rdr','EDR','edr']:
+            dt_value = 7.14285714285714e-03
+            scl = -10
+            segy_crs = Available_CRS['EquidistantCylindrical-180']
+                
+        elif DRTYPE in ['RAW','raw']:
+            scl = -1
+            dt_value = 7.14285714285714e-03
+            segy_crs = Available_CRS['EquidistantCylindrical-180']
+                
+        segy_coord = coordTransformer(coord, def_crs, segy_crs)            
+        DAT2FILE(IMG_DIR, DUMP_DIR, SEGY_DIR, file_name, F, SAVEDUMP,
+                 SAVEIMG, SAVESEGY, segy_coord, dt=dt_value ,pp='y',scaler=scl)
+            
+            
+    if DBUP in ['Y','y']:
+        if DRTYPE in ['RDR','rdr']:
+            indxs = [32,33,35,36]
+        else:
+            indxs = [24,25,27,28]
+        
+        new_params = {'c1min':min(full_parameters[indxs[0]-3]),
+                      'c1max':max(full_parameters[indxs[0]-3]),
+                      'c2min':min(full_parameters[indxs[1]-3]),
+                      'c2max':max(full_parameters[indxs[1]-3])
+                      }
+        
+        short_cols = xDR_df.columns.tolist()
+        
+        for ii in range(len(new_params.keys())):
+            # print(ii)
+            key = list(new_params.keys())[ii]
+            # print(key)
+            val = new_params[key]
+            # print(val)
+            short_cols.insert(indxs[ii], key)
+            short_parameters.insert(indxs[ii]-2,val)
+   
     
-    #dst_crs = marsEQUI180
+    # Create entries for dataframe
     dst_crs = DST_CRS
-    # Create the linear geometry
-    trans_coord = coordTransformer(coord, def_crs, dst_crs)
-    track =  LineString(trans_coord)
-    # create the geoSeries
-    gser = gpd.GeoSeries(track)
-    
-    # Create a dataframe containing all values for each parameter
     proj4= dst_crs.to_proj4()#.to_wkt()
     meta = [fname, proj4]
+    
+    
+    
     temp_full = meta+full_parameters
     series_full = pd.Series(temp_full, index=xDR_df.columns)
     xDR_df = xDR_df.append(series_full,ignore_index=True)
+   
+    if def_crs != dst_crs:
+        dst_coord = coordTransformer(coord, def_crs, dst_crs)
+    else:
+        dst_coord = coord
+    
+    
+    track = LineString(dst_coord)
+    trans_coord = None
+    # create the geoSeries
+    gser = gpd.GeoSeries(track)
+    
     # Create a temporary dataframe containing all mean values for each parameter
     temp_short = meta+short_parameters
-    
-    if DRTYPE in ['RDR','rdr']:
-        aa, bb, cc, dd = [32,33,35,36]
-    else:
-        aa, bb, cc, dd = [22,23,25,26]
-        
-    short_cols = xDR_df.columns.tolist()
-    short_cols.insert(aa,'c1min')
-    short_cols.insert(bb,'c1max')
-    short_cols.insert(cc,'c2min')
-    short_cols.insert(dd,'c2max')
-    
     series_short = pd.Series(temp_short, index=short_cols)
     df = pd.DataFrame(columns=short_cols).append(series_short, ignore_index=True)
     # Create the geodataframe containing all mean values and geometry for each parameter
@@ -306,48 +353,56 @@ def chunk_creator(item_list, chunksize):
 
 def main():        
     # List all files
-    all_filenames = get_paths(DATA_PATH, 'dat')
+    file_list = get_paths(DATA_PATH, 'dat')
     
     # Check available resources
-    import psutil
-    avram=psutil.virtual_memory().total >> 3
-    if avram > 31 and len(all_filenames) <5000:
-        JOBS=psutil.cpu_count(logical=True)
-    elif avram > 31 and len(all_filenames)>5000:
-        JOBS=psutil.cpu_count(logical=True)
-    elif avram <=31 and len(all_filenames)<5000:
-        JOBS=psutil.cpu_count(logical=True)
-    elif avram <= 31 and len(all_filenames) > 5000:
-        JOBS=psutil.cpu_count(logical=False)
     
+    total_size, max_size, av_fsize = folder_file_size(DATA_PATH,file_list)
+
+    from tqdm import tqdm
+    import psutil
+    
+    avram=psutil.virtual_memory().total >> 30
+    avcores=psutil.cpu_count(logical=False)
+    avthreads=psutil.cpu_count(logical=True)
+    # ram_thread = avram/avthreads
+    req_mem = avthreads*max_size
+    if req_mem > avcores and req_mem > avram:
+        JOBS = avcores
+    else:
+        JOBS = avthreads
     # Create chunks for parallel processing
-    filerange = len(all_filenames)
+    filerange = len(file_list)
     chunksize = round(filerange/JOBS)
     if chunksize <1:
         chunksize=1
         JOBS = filerange
     chunks = []
-    for c in chunk_creator(all_filenames, JOBS):
+    for c in chunk_creator(file_list, JOBS):
         chunks.append(c)
                
     # Load sub-functions
     if DRTYPE in ['RDR', 'rdr','EDR','edr']:
-        from utils.DFUtils import xDR_params
-        def_crs = marsPLNTC
+        
+        def_crs = Available_CRS['Planetocentric']
         ParamDF=xDR_params()
     
     elif DRTYPE in ['RAW','raw']:
-        from utils.DFUtils import RAW_params
-        def_crs = marsPLNTC
+        
+        def_crs = Available_CRS['Planetocentric']
         ParamDF = RAW_params()
         
+    elif DRTYPE in ['FM','fm']:
+        
+        def_crs = Available_CRS['Planetocentric']
+        ParamDF = FM_params()
     # Initialize dataframes
     xDR_df = xDR_DF(ParamDF)
     xDR_gdf = gpd.GeoDataFrame(xDR_df)
     results = []
     
     # Parallel processing
-    with tqdm(total=len(all_filenames),
+    with tqdm(total=len(file_list),
              desc = 'Generating files',
              unit='File') as pbar:
         
@@ -378,10 +433,10 @@ def main():
         geoDF2file(xDR_gdf, 'Complete', [DST_CRS, DST_CRS], SAVE_DIR, DRVR)
         print('\nSaving N-Pole geopackage')
         xDR_gdf_NPole = gdf_split(xDR_gdf, 65)
-        geoDF2file(xDR_gdf_NPole, 'NPole', [DST_CRS, N_pole_crs], SAVE_DIR, DRVR)
+        geoDF2file(xDR_gdf_NPole, 'NPole', [DST_CRS, Available_CRS['N_pole']], SAVE_DIR, DRVR)
         print('\nSaving S-Pole geopackage')
         xDR_gdf_SPole = gdf_split(xDR_gdf, -65)
-        geoDF2file(xDR_gdf_SPole, 'SPole', [DST_CRS, S_pole_crs], SAVE_DIR, DRVR)
+        geoDF2file(xDR_gdf_SPole, 'SPole', [DST_CRS, Available_CRS['S_pole']], SAVE_DIR, DRVR)
         print('All done')
         
         
@@ -406,6 +461,7 @@ if __name__ == "__main__":
     parser.add_argument('--sim', help='Save images?')
     parser.add_argument('--sdum', help='Save dumps?')
     parser.add_argument('--sgy', help='Save seg-y?')
+    parser.add_argument('--dbup', help='Update Database')
     
     args = parser.parse_args()
     WORK_PATH = args.wdir
@@ -415,7 +471,7 @@ if __name__ == "__main__":
     SAVEIMG=args.sim
     SAVEDUMP=args.sdum
     SAVESEGY=args.sgy
-
+    DBUP = args.dbup
     ## PATHS
     if WORK_PATH is None:
         root = Tk()
@@ -465,12 +521,16 @@ if __name__ == "__main__":
         SEGY_DIR = make_folder(WORK_PATH, 'Seg-y')
     else:
         SEGY_DIR = None
-   
-    DST_CRS = input('Destination CRS in wkt/proj4 format - Leave empty for Mars Ecquirectangular') or marsEQUI180
 
+    if DBUP is None:
+        DBUP = question('Save results into postgres database?',['Y','y','N','n'])
     
-    DBUP = question('Save results into postgres database?',['Y','y','N','n'])
-    
+    DCRS = question("Select destination CRS, leave empty for Planetocentric", ['Equi','Plane',''])
+    if DCRS == '' or DCRS =='Plane':
+        print('plane')
+        DST_CRS = Available_CRS['Planetocentric']
+    else:
+        DST_CRS = Available_CRS['EquidistantCylindrical-180']
     # main()    
     xDR_gdf, xDR_df, xDR_gdf_NPole, xDR_gdf_SPole = main()
     

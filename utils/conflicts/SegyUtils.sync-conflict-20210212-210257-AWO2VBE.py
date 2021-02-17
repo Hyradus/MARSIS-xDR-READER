@@ -47,7 +47,7 @@ def assemply_segy(image, xStart, xEnd, yStart, yEnd, dt, scaler):
         trace.stats.segy.trace_header.trace_sequence_number_within_line = i+1
         trace.stats.segy.trace_header.sample_interval_in_ms_for_this_trace = dt
         trace.stats.segy.trace_header.number_of_samples_in_this_trace = len(trace)
-        trace.stats.segy.trace_header.scalar_to_be_applied_to_all_coordinates = 1*scaler
+        trace.stats.segy.trace_header.scalar_to_be_applied_to_all_coordinates = -1*scaler
         trace.stats.segy.trace_header.delay_recording_time = 0
         trace.stats.segy.trace_header.source_coordinate_x= Xint[i]
         trace.stats.segy.trace_header.source_coordinate_y= Yint[i]
