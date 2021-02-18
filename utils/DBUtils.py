@@ -76,8 +76,8 @@ def databaseUpdate(xDR_gdf): #Function to insert dataframe columns into postgres
         
     connection.close()
     if err is None:
-        err = 'No errors'
+        err = 'Database updated without errors'
     return(err)
-    # cursor.execute('TRUNCATE TABLE geodata;')
-    # cursor.execute('TRUNCATE TABLE observationmetadatafill;')
-    # connection.commit()
+    cursor.execute('TRUNCATE TABLE geodata;')
+    cursor.execute('TRUNCATE TABLE observationmetadatafill;')
+    connection.commit()

@@ -252,7 +252,7 @@ def RAW2GeoDF(xDR_df, xDR_gdf, xDrFile, ParamDF, def_crs):
         full_parameters.append(values)
         short_parameters.append(mean_values)
         file_name=fname.split('.')[0]
-
+    short_cols = xDR_df.columns.tolist()
 
     if DRTYPE in ['RDR', 'rdr','EDR','edr']:
         a, b,c,d = [11,17,29,30]
@@ -335,7 +335,7 @@ def RAW2GeoDF(xDR_df, xDR_gdf, xDrFile, ParamDF, def_crs):
     df = pd.DataFrame(columns=short_cols).append(series_short, ignore_index=True)
     # Create the geodataframe containing all mean values and geometry for each parameter
     xDR_geodf = gpd.GeoDataFrame(df, crs = dst_crs, geometry=gser)
-    return(xDR_geodf, xDR_df, coord, trans_coord, segy_coord)
+    return(xDR_geodf, xDR_df, coord, trans_coord)
 
 def parallel_df(files, JOBS,FM_df, FM_gdf, GeomDF, def_crs):
     from joblib import Parallel, delayed
@@ -429,7 +429,6 @@ def main():
     else:        
         # Save geopackages     
         print('\nSaving Full geopackate')    
-        # geoDF2file(xDR_gdf, 'Complete', marsEQUI180, SAVE_DIR, DRVR)
         geoDF2file(xDR_gdf, 'Complete', [DST_CRS, DST_CRS], SAVE_DIR, DRVR)
         print('\nSaving N-Pole geopackage')
         xDR_gdf_NPole = gdf_split(xDR_gdf, 65)
@@ -456,12 +455,13 @@ if __name__ == "__main__":
     
     parser.add_argument('--wdir', help='Output folder: ')
     parser.add_argument('--ddir', help='Input files folder: ')
-    parser.add_argument('--drv', help='Driver to save files GPKG/gpkg or SHP/shp')
     parser.add_argument('--drt', help='Data type: EDR/RDR/FM/RAW')
+    parser.add_argument('--drv', help='Driver to save files GPKG/gpkg or SHP/shp')
     parser.add_argument('--sim', help='Save images?')
     parser.add_argument('--sdum', help='Save dumps?')
     parser.add_argument('--sgy', help='Save seg-y?')
     parser.add_argument('--dbup', help='Update Database')
+    parser.add_argument('--dcrs', help='Destination CRS: Equi, Plane, leave empty')
     
     args = parser.parse_args()
     WORK_PATH = args.wdir
@@ -472,6 +472,7 @@ if __name__ == "__main__":
     SAVEDUMP=args.sdum
     SAVESEGY=args.sgy
     DBUP = args.dbup
+    DCRS = args.dcrs
     ## PATHS
     if WORK_PATH is None:
         root = Tk()
@@ -525,13 +526,14 @@ if __name__ == "__main__":
     if DBUP is None:
         DBUP = question('Save results into postgres database?',['Y','y','N','n'])
     
-    DCRS = question("Select destination CRS, leave empty for Planetocentric", ['Equi','Plane',''])
-    if DCRS == '' or DCRS =='Plane':
+    if DCRS is None:
+        DCRS = question("Select destination CRS, ""def"" for Planetocentric", ['Equi','Plane','def'])
+    if DCRS == 'def' or DCRS =='Plane':
         print('plane')
         DST_CRS = Available_CRS['Planetocentric']
     else:
         DST_CRS = Available_CRS['EquidistantCylindrical-180']
-    # main()    
-    xDR_gdf, xDR_df, xDR_gdf_NPole, xDR_gdf_SPole = main()
+    main()    
+    # xDR_gdf, xDR_df, xDR_gdf_NPole, xDR_gdf_SPole = main()
     
     

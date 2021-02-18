@@ -61,6 +61,21 @@ def get_paths(PATH, ixt):
     files = [f for f in os.listdir(PATH) if chkCase.match(f)]
     return(files)
 
+def folder_file_size(path, image_list):
+    from statistics import mean
+    sizes =[]
+    gb = 1024*1024*1024
+    mb=1024*1024
+    for path, dirs, files in os.walk(path):
+        for f in files:
+            fp = os.path.join(path, f)
+            #sizes += os.path.getsize(fp)
+            sizes.append((os.path.getsize(fp))/gb)
+    max_size = max(sizes)
+    av_fsize=mean(sizes)
+    total_size = sum(sizes)
+    return (total_size, max_size, av_fsize)
+
 def intInput(w):
     while True:
         ask='Insert '+w+': '
