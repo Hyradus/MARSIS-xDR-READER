@@ -135,13 +135,12 @@ Connection to database and ingestion parameters must be set into utils/DB_utils.
 It export a seg-y file for both frequency
 
 Example of seg-y imported into opendTect
-![alt text](Readme_images/segy_opendtect.jpg?raw=true "seg-y opendTect")
-
+<img src="Readme_images/segy_opendtect.jpg?raw=true" alt="seg-y opendTect"
+	title="seg-y opendTect" width="1000"/>
 And 2d track, showing dt in a major scale
-![alt text](Readme_images/segy_opendtect_2d_image.jpg?raw=true "seg-y opendTect")
+<img src="Readme_images/segy_opendtect_2d_image.jpg?raw=true" alt="seg-y opendTect"
+	title="seg-y opendTect" width="1000"/>
 ## Test example
 
-Here the example code shown in the image
-
-
-![alt text](Readme_images/test.jpg?raw=true "Test")
+<img src="Readme_images/test.jpg?raw=true" alt="Test Example"
+	title="Test Example" width="1000"/>
