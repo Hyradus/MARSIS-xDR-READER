@@ -3,19 +3,31 @@
 
 # README
 ________________________________________________________________________________
-# Table of Contents
+- [Pipeline/workflow description](#pipeline-workflow-description)
+- [Differences between CLI script and notebook](#differences-between-cli-script-and-notebook)
+- [CONDA environment](#conda-environment)
+  * [Install anaconda](#install-anaconda)
+  * [Create and activate the environment using the yml](#create-and-activate-the-environment-using-the-yml)
+- [Script execution](#script-execution)
+  * [Arguments that can be passed [ONLY CLI SCRIPT]](#arguments-that-can-be-passed--only-cli-script-)
+    + [Output directory](#output-directory)
+    + [Data directory](#data-directory)
+    + [Driver for saving GIS files](#driver-for-saving-gis-files)
+    + [Data record type](#data-record-type)
+    + [Save images flag](#save-images-flag)
+    + [Save numpy dumps](#save-numpy-dumps)
+    + [Save SEG-Y](#save-seg-y)
+    + [Update Database](#update-database)
+  * [General example](#general-example)
+    + [CLI script](#cli-script)
+  * [Outputs:](#outputs-)
+    + [GIS OUTPUTS](#gis-outputs)
+    + [Image outputs](#image-outputs)
+    + [Ingestion into postgres+postgis database](#ingestion-into-postgres-postgis-database)
+    + [SEG-Y outpust](#seg-y-outpust)
+  * [Test example](#test-example)
 
-* [Pipeline/workflow description](#Pipeline/workflow descriptione)
-* [CONDA Environment](#CONDA Environment)
-    * [Install Anaconda](##Install anaconda)
-    * [Create the environment using the yml](## Create the environment using the yml)
-    * [Activate MARSISv2 environment](## Activate MARSISv2 environment)
-* [Script execution](# Script execution)
-    * [Arguments to be passed](## Arguments to be passed)
-* [Examples](# Examples)
-    * [Conda environment installation and script execution](## Conda environment installation and script execution)
-    * [General Example](## General example)
-    * [Test example](## Test example)
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 ________________________________________________________________________________
 # Pipeline/workflow description
@@ -49,8 +61,8 @@ with terminal move to the downloaded folder and run:
 ## Create and activate the environment using the yml
 
 Using the terminal, craate conda env using provided MARSISv2.yml:
-* `conda env create -f MARSISv2.yml`
-* `conda activate MARSISv2`
+* `conda env create -f MARSIS_Env.yml`
+* `conda activate MARSIS_Env`
 
 # Script execution
 
@@ -109,15 +121,11 @@ It creates three different geopackages:
     
 ### Image outputs
 As default it creates thre types of images for each frequency:
-* Original image
-* Normalized image
-* Scaled image using sklearn MinMaxScaler
+- Original image
+- Normalized image
+- Scaled image using sklearn MinMaxScaler
 
 *Further image processing is in development*
-
-
-### SEG-Y outputs
-It export a seg-y file for each frequency of each image
 
 ### Ingestion into postgres+postgis database
 Connection to database and ingestion parameters must be set into utils/DB_utils.py
@@ -127,13 +135,12 @@ Connection to database and ingestion parameters must be set into utils/DB_utils.
 It export a seg-y file for both frequency
 
 Example of seg-y imported into opendTect
-![alt text](Readme_images/segy_opendtect.jpg?raw=true "seg-y opendTect")
-
+<img src="Readme_images/segy_opendtect.jpg?raw=true" alt="seg-y opendTect"
+	title="seg-y opendTect" width="1000"/>
 And 2d track, showing dt in a major scale
-![alt text](Readme_images/segy_opendtect_2d_image.jpg?raw=true "seg-y opendTect")
+<img src="Readme_images/segy_opendtect_2d_image.jpg?raw=true" alt="seg-y opendTect"
+	title="seg-y opendTect" width="1000"/>
 ## Test example
 
-Here the example code shown in the image
-
-
-![alt text](Readme_images/test.jpg?raw=true "Test")
+<img src="Readme_images/test.jpg?raw=true" alt="Test Example"
+	title="Test Example" width="1000"/>
