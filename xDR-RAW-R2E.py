@@ -278,8 +278,12 @@ def RAW2GeoDF(xDR_df, xDR_gdf, xDrFile, ParamDF, def_crs):
             dt_value = 7.14285714285714e-03
             segy_crs = Available_CRS['EquidistantCylindrical-180']
                 
-        segy_coord = coordTransformer(coord, def_crs, segy_crs)            
-        DAT2FILE(IMG_DIR, DUMP_DIR, SEGY_DIR, file_name, F, SAVEDUMP,
+        segy_coord = coordTransformer(coord, def_crs, segy_crs)    
+    else:
+        segy_coord=np.nan    
+        dt_value=np.nan
+        scl=np.nan
+    DAT2FILE(IMG_DIR, DUMP_DIR, SEGY_DIR, file_name, F, SAVEDUMP,
                  SAVEIMG, SAVESEGY, segy_coord, dt=dt_value ,pp='y',scaler=scl)
             
             
