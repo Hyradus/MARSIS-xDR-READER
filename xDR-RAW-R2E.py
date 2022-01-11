@@ -531,8 +531,8 @@ if __name__ == "__main__":
         DBUP = question('Save results into postgres database?',['Y','y','N','n'])
     
     if DCRS is None:
-        DCRS = question("Select destination CRS, ""def"" for Planetocentric", ['Equi','Plane','def'])
-    if DCRS == 'def' or DCRS =='Plane':
+        DCRS = question("Select destination CRS, ""def"" for Planetocentric", ['Equi','Plane',''])
+    if DCRS == '' or DCRS =='Plane':
         print('plane')
         DST_CRS = Available_CRS['Planetocentric']
     else:
